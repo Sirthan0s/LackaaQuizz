@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lacka Millioner – Geographie Quiz</title>
+  <style>
+    :root{
+      --bg0:#05050a;
+      --panel: rgba(14,18,40,.82);
+      --card: rgba(18,26,58,.86);
+      --stroke: rgba(255,255,255,.10);
+      --text:#eef1ff;
+      --muted:#aab3d8;
+      --accent:#7c5cff;
+      --accent2:#39d98a;
+      --gold:#ffd54a;
+      --good:#39d98a;
+      --bad:#ff5c7a;
+      --shadow: 0 18px 55px rgba(0,0,0,.58);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+
+      /* colorful quiz show background */
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(124,92,255,.28), transparent 55%),
+        radial-gradient(1000px 650px at 85% 20%, rgba(255,213,74,.22), transparent 58%),
+        radial-gradient(900px 650px at 50% 95%, rgba(57,217,138,.18), transparent 60%),
+        radial-gradient(700px 480px at 35% 60%, rgba(255,92,122,.18), transparent 60%),
+        linear-gradient(180deg, rgba(5,5,10,1), rgba(6,8,18,1));
+      overflow-x:hidden;
+    }
+    .glowGrid{
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at 50% 30%, rgba(0,0,0,1), transparent 70%);
+      pointer-events:none;
+      opacity:.55;
+      z-index:0;
+    }
+    .spotlight{
+      position:fixed; inset:-20%;
+      background:
+        radial-gradient(closest-side at 50% 45%, rgba(255,255,255,.08), transparent 60%);
+      pointer-events:none;
+      z-index:0;
+      animation: drift 10s ease-in-out infinite alternate;
+      opacity:.9;
+    }
+    @keyframes drift{
+      from{ transform: translate(-1.5%, -1%); }
+      to{ transform: translate(1.5%, 1%); }
+    }
+
+    .app{
+      width:min(1200px, 100%);
+      display:grid;
+      grid-template-columns: 1.35fr .75fr;
+      gap:16px;
+      position:relative;
+      z-index:1;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(18,26,58,.88), rgba(10,12,28,.88));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .header{
+      padding:18px 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+    .logo{
+      width:46px; height:46px;
+      border-radius:16px;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,.35), transparent 45%),
+        linear-gradient(135deg, rgba(124,92,255,1), rgba(255,213,74,.95));
+      box-shadow: 0 16px 45px rgba(124,92,255,.20);
+      position:relative;
+    }
+    .logo:after{
+      content:"LM";
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+      font-weight:1000;
+      color:rgba(5,5,10,.82);
+      text-shadow: 0 1px 0 rgba(255,255,255,.45);
+      font-size:16px;
+      letter-spacing:.5px;
+    }
+    .brand h1{
+      margin:0; font-size:16px; line-height:1.2;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .brand p{
+      margin:4px 0 0; font-size:12px; color:var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .topmeta{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size:12px;
+      color: var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .pill b{ color: var(--text); }
+    .timerRing{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 4px rgba(255,213,74,.12);
+    }
+    .timerRing.warn{ background: var(--bad); box-shadow: 0 0 0 4px rgba(255,92,122,.12); }
+
+    .content{ padding:18px; }
+
+    .questionBox{
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .questionBox:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(650px 240px at 15% 20%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(520px 240px at 85% 10%, rgba(255,213,74,.18), transparent 65%);
+      pointer-events:none;
+      opacity:.95;
+    }
+
+    .qMeta{
+      position:relative;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .tag, .value{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+    .value{
+      color: var(--gold);
+      background: rgba(255,213,74,.10);
+      border-color: rgba(255,213,74,.20);
+      font-weight:800;
+    }
+
+    .question{
+      position:relative;
+      margin:0;
+      font-size:18px;
+      line-height:1.35;
+      letter-spacing:.2px;
+    }
+
+    .answers{
+      position:relative;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius: 14px;
+      padding:12px 12px;
+      text-align:left;
+      cursor:pointer;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(18,26,58,.92), rgba(12,16,36,.92));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 12px 26px rgba(0,0,0,.35);
+      transition: transform .08s ease, border-color .15s ease, background .15s ease, filter .15s ease;
+      min-height:56px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(124,92,255,.65); }
+    .btn:active{ transform: translateY(0px) scale(.995); }
+    .btn[disabled]{ cursor:not-allowed; opacity:.75; filter: grayscale(.10); }
+
+    .label{
+      width:26px; height:26px;
+      border-radius:9px;
+      background: rgba(124,92,255,.16);
+      border: 1px solid rgba(124,92,255,.35);
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      flex: 0 0 auto;
+      margin-top:1px;
+    }
+    .btn .text{
+      font-size:14px;
+      line-height:1.25;
+      margin-top:2px;
+    }
+
+    /* dramatic states */
+    .btn.selected{
+      border-color: rgba(255,213,74,.75);
+      box-shadow: 0 18px 35px rgba(255,213,74,.10), 0 12px 26px rgba(0,0,0,.35);
+      animation: pulse .9s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: translateY(-1px); }
+      50%{ transform: translateY(-1px) scale(1.01); }
+    }
+    .btn.reveal::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(500px 220px at 25% 20%, rgba(255,255,255,.10), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .btn.correct{
+      border-color: rgba(57,217,138,.80);
+      background: linear-gradient(180deg, rgba(57,217,138,.22), rgba(18,26,58,.92));
+      animation: pop .35s ease-out 1;
+    }
+    .btn.wrong{
+      border-color: rgba(255,92,122,.80);
+      background: linear-gradient(180deg, rgba(255,92,122,.22), rgba(18,26,58,.92));
+      animation: shake .35s ease-out 1;
+    }
+    .btn.dim{ opacity:.55; filter: grayscale(.20); }
+    @keyframes shake{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-6px); }
+      50%{ transform: translateX(6px); }
+      75%{ transform: translateX(-4px); }
+      100%{ transform: translateX(0); }
+    }
+    @keyframes pop{
+      0%{ transform: scale(.98); }
+      100%{ transform: scale(1); }
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:14px;
+      flex-wrap:wrap;
+      position:relative;
+    }
+    .status{
+      color: var(--muted);
+      font-size:12px;
+      min-height: 18px;
+    }
+    .primary{
+      background: linear-gradient(135deg, rgba(124,92,255,1), rgba(124,92,255,.70));
+      border: 1px solid rgba(124,92,255,.60);
+      padding:11px 14px;
+      border-radius: 14px;
+      color: #050611;
+      font-weight:1000;
+      cursor:pointer;
+      box-shadow: 0 18px 45px rgba(124,92,255,.22);
+    }
+    .secondary{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      padding:11px 14px;
+      border-radius: 14px;
+      color: var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .primary:disabled, .secondary:disabled{ opacity:.6; cursor:not-allowed; }
+
+    /* RIGHT */
+    .right .content{ padding:14px 14px 18px; }
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between;
+      margin:8px 0 10px;
+      color: var(--muted);
+      font-size:12px;
+    }
+    .lifelines{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .lifeBtn{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      cursor:pointer;
+      font-weight:900;
+    }
+    .lifeBtn span{
+      color: var(--muted);
+      font-weight:800;
+      font-size:12px;
+    }
+    .lifeBtn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    .money{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:flex;
+      flex-direction:column-reverse;
+      gap:8px;
+    }
+    .money li{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size:12px;
+    }
+    .money li b{ color: var(--text); }
+    .money li.active{
+      border-color: rgba(255,213,74,.35);
+      background: rgba(255,213,74,.10);
+      color: #ffe7a3;
+    }
+    .money li.safe{
+      border-color: rgba(57,217,138,.28);
+      background: rgba(57,217,138,.08);
+    }
+
+    .leaderboard{
+      margin-top:14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top:14px;
+    }
+    .lbTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .lbTop .best{
+      color: var(--gold);
+      font-weight:1000;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,213,74,.20);
+      background: rgba(255,213,74,.10);
+    }
+    .lbList{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .lbRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size:12px;
+    }
+    .lbRow b{ color: var(--text); }
+
+    /* MODAL */
+    .modal{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background: rgba(0,0,0,.62);
+      z-index:50;
+    }
+    .modal.show{ display:flex; }
+    .modalCard{
+      width:min(560px, 100%);
+      background: linear-gradient(180deg, rgba(18,26,58,.96), rgba(10,12,28,.96));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .modalCard h2{ margin:0 0 8px; font-size:16px; }
+    .modalCard p{
+      margin:0 0 14px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      white-space:pre-line;
+    }
+    .modalActions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+
+    /* dramatic flash on reveal */
+    .flash{
+      position:fixed; inset:0;
+      pointer-events:none;
+      background: radial-gradient(700px 380px at 50% 40%, rgba(255,255,255,.10), transparent 60%);
+      opacity:0;
+      z-index:40;
+    }
+    .flash.go{ animation: flash .55s ease-out 1; }
+    @keyframes flash{
+      0%{ opacity:0; }
+      25%{ opacity:.9; }
+      100%{ opacity:0; }
+    }
+
+    @media (max-width: 900px){
+      .app{ grid-template-columns: 1fr; }
+      .answers{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="spotlight"></div>
+  <div class="glowGrid"></div>
+  <div class="flash" id="flash"></div>
+
+  <div class="app">
+    <!-- LEFT -->
+    <section class="panel">
+      <div class="header">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div style="min-width:0">
+            <h1>Lacka Millioner</h1>
+            <p>Geographie · 15 zufällige Fragen aus dem Pool · Timer & Joker</p>
+          </div>
+        </div>
+        <div class="topmeta">
+          <div class="pill"><span class="timerRing" id="timerDot"></span>Zeit: <b id="timer">25</b>s</div>
+          <div class="pill">Frage: <b id="qIndex">1</b>/15</div>
+          <div class="pill">Sicher: <b id="safe">0 €</b></div>
+          <div class="pill">Gewinn: <b id="current">0 €</b></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="questionBox">
+          <div class="qMeta">
+            <div class="tag">Kategorie: Geographie</div>
+            <div class="value" id="valueTag">Wert: 100 €</div>
+          </div>
+
+          <h2 class="question" id="questionText">…</h2>
+          <div class="answers" id="answers"></div>
+
+          <div class="actions">
+            <div class="status" id="status">Wähle eine Antwort.</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap">
+              <button class="secondary" id="walkBtn" title="Spiel beenden und Gewinn mitnehmen">Mitnehmen</button>
+              <button class="primary" id="lockBtn" disabled>Einloggen</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:12px">
+          <div class="status">Shortcuts: A/B/C/D wählen · Enter = Einloggen · Esc = Popup schließen</div>
+          <button class="secondary" id="restartBtn">Neu starten</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="panel right">
+      <div class="header">
+        <div class="brand">
+          <div style="width:46px;height:46px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);display:grid;place-items:center;font-weight:1000;color:var(--gold);">LM</div>
+          <div>
+            <h1>Joker & Leiter</h1>
+            <p>5. & 10. Frage = Sicherheitsstufe</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="lifelines">
+          <button class="lifeBtn" id="fiftyBtn">50:50 <span id="fiftyState">verfügbar</span></button>
+          <button class="lifeBtn" id="audienceBtn">Publikum <span id="audienceState">verfügbar</span></button>
+          <button class="lifeBtn" id="phoneBtn">Telefon <span id="phoneState">verfügbar</span></button>
+        </div>
+
+        <div class="sectionTitle">
+          <span>Gewinnleiter</span><span>€</span>
+        </div>
+        <ol class="money" id="moneyList"></ol>
+
+        <div class="leaderboard">
+          <div class="lbTop">
+            <div class="sectionTitle" style="margin:0"><span>Leaderboard (Top 10)</span><span></span></div>
+            <div class="best">Best: <span id="bestScore">0 €</span></div>
+          </div>
+          <div class="lbList" id="lbList"></div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px">
+            <button class="secondary" id="clearLbBtn" title="Leaderboard löschen">Reset LB</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal">
+    <div class="modalCard">
+      <h2 id="modalTitle">Info</h2>
+      <p id="modalText">…</p>
+      <div class="modalActions">
+        <button class="secondary" id="modalClose">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // Lacka Millioner – JS
+    // =========================
+
+    // Money ladder (15 questions)
+    const money = [
+      100, 200, 300, 500, 1000,
+      2000, 4000, 8000, 16000, 32000,
+      64000, 125000, 250000, 500000, 1000000
+    ];
+    const safeLevels = new Set([5,10]); // 1-indexed
+
+    // Timer
+    const QUESTION_TIME = 25; // seconds
+    let timerLeft = QUESTION_TIME;
+    let timerId = null;
+
+    // Leaderboard storage
+    const LB_KEY = "lacka_millioner_leaderboard_v1";
+
+    // 60 Geographie-Fragen (DE) – nur Geographie
+    // correct = index 0..3
+    const pool = [
+      { q:"Welche Hauptstadt hat Australien?", a:["Sydney","Canberra","Melbourne","Perth"], correct:1 },
+      { q:"Welche Hauptstadt hat Kanada?", a:["Toronto","Vancouver","Ottawa","Montreal"], correct:2 },
+      { q:"Welche Hauptstadt hat Brasilien?", a:["Rio de Janeiro","Brasília","São Paulo","Salvador"], correct:1 },
+      { q:"Welche Hauptstadt hat Südafrika (Regierungssitz)?", a:["Kapstadt","Pretoria","Johannesburg","Durban"], correct:1 },
+      { q:"Welche Hauptstadt hat die Türkei?", a:["Istanbul","Ankara","Izmir","Bursa"], correct:1 },
+
+      { q:"Welcher Fluss ist der längste in Europa?", a:["Donau","Wolga","Rhein","Po"], correct:1 },
+      { q:"Welcher Fluss fließt durch Paris?", a:["Seine","Loire","Rhone","Garonne"], correct:0 },
+      { q:"Welcher Fluss fließt durch Rom?", a:["Po","Tiber","Arno","Etsch"], correct:1 },
+      { q:"Welcher Fluss fließt durch Budapest?", a:["Elbe","Donau","Oder","Weichsel"], correct:1 },
+      { q:"Welcher Fluss ist der längste der Welt?", a:["Nil","Amazonas","Jangtse","Kongo"], correct:0 },
+
+      { q:"Welcher Ozean ist der größte?", a:["Atlantik","Indischer Ozean","Arktischer Ozean","Pazifik"], correct:3 },
+      { q:"Welcher Ozean liegt östlich von Afrika?", a:["Atlantik","Indischer Ozean","Pazifik","Arktischer Ozean"], correct:1 },
+      { q:"Welches Meer liegt zwischen Italien und dem Balkan?", a:["Ägäisches Meer","Adriatisches Meer","Schwarzes Meer","Rotes Meer"], correct:1 },
+      { q:"Welche Meerenge trennt Europa von Afrika?", a:["Beringstraße","Straße von Gibraltar","Bosporus","Magellanstraße"], correct:1 },
+      { q:"Der Bosporus trennt …", a:["Afrika und Europa","Europa und Asien","Nord- und Südamerika","Australien und Asien"], correct:1 },
+
+      { q:"Welches Land hat die größte Fläche?", a:["Kanada","China","USA","Russland"], correct:3 },
+      { q:"Welches Land ist das bevölkerungsreichste (Stand allgemein)?", a:["Indien","China","USA","Indonesien"], correct:1 },
+      { q:"Welches Land liegt NICHT in Europa?", a:["Ungarn","Georgien","Portugal","Finnland"], correct:1 },
+      { q:"Welches Land ist KEIN Mitglied der EU?", a:["Portugal","Norwegen","Polen","Irland"], correct:1 },
+      { q:"Welches Land hat keine Küste?", a:["Bolivien","Peru","Ecuador","Chile"], correct:0 },
+
+      { q:"Wie heißt die Wüste im Norden Afrikas?", a:["Gobi","Sahara","Kalahari","Atacama"], correct:1 },
+      { q:"Welche Wüste liegt in der Mongolei/China?", a:["Atacama","Gobi","Sahara","Namib"], correct:1 },
+      { q:"Welche Wüste liegt in Chile?", a:["Atacama","Karakum","Taklamakan","Sonora"], correct:0 },
+      { q:"Welche Wüste liegt in Südafrika/Namibia?", a:["Kalahari","Gobi","Arabische Wüste","Thar"], correct:0 },
+      { q:"Die Arabische Wüste liegt hauptsächlich in …", a:["Saudi-Arabien","Spanien","Südafrika","Kanada"], correct:0 },
+
+      { q:"Welcher Berg ist der höchste über dem Meeresspiegel?", a:["K2","Mount Everest","Makalu","Denali"], correct:1 },
+      { q:"In welchem Land liegt der Kilimandscharo?", a:["Kenia","Tansania","Uganda","Äthiopien"], correct:1 },
+      { q:"Der Mont Blanc liegt an der Grenze von …", a:["Spanien/Frankreich","Frankreich/Italien","Deutschland/Österreich","Schweiz/Österreich"], correct:1 },
+      { q:"Der höchste Berg Europas (häufig so geführt) ist …", a:["Elbrus","Matterhorn","Mont Blanc","Olymp"], correct:0 },
+      { q:"Der Denali liegt in …", a:["Kanada","USA","Russland","Norwegen"], correct:1 },
+
+      { q:"Welche Insel ist die größte im Mittelmeer?", a:["Sizilien","Kreta","Sardinien","Zypern"], correct:0 },
+      { q:"Welche Insel gehört zu Griechenland?", a:["Mallorca","Kreta","Sardinien","Korsika"], correct:1 },
+      { q:"Welche Insel gehört zu Spanien?", a:["Korsika","Sizilien","Mallorca","Kreta"], correct:2 },
+      { q:"Island liegt im …", a:["Arktischen Ozean","Atlantischen Ozean","Indischen Ozean","Pazifischen Ozean"], correct:1 },
+      { q:"Madagaskar liegt vor der Küste von …", a:["Westafrika","Südafrika","Ostafrika","Nordafrika"], correct:2 },
+
+      { q:"Welche Stadt liegt am nächsten am Äquator?", a:["Quito","Kapstadt","Rom","Tokio"], correct:0 },
+      { q:"Die Hauptstadt von Neuseeland ist …", a:["Auckland","Wellington","Christchurch","Hamilton"], correct:1 },
+      { q:"Die Hauptstadt von Polen ist …", a:["Krakau","Warschau","Danzig","Breslau"], correct:1 },
+      { q:"Die Hauptstadt von Österreich ist …", a:["Graz","Wien","Salzburg","Innsbruck"], correct:1 },
+      { q:"Die Hauptstadt von der Schweiz ist …", a:["Zürich","Genf","Bern","Basel"], correct:2 },
+
+      { q:"Welche Stadt liegt am Fluss Spree?", a:["Wien","Berlin","Prag","Bern"], correct:1 },
+      { q:"Welche Stadt liegt am Fluss Donau?", a:["Hamburg","München","Wien","Köln"], correct:2 },
+      { q:"Welche Stadt liegt am Fluss Rhein?", a:["Köln","Berlin","Leipzig","Dresden"], correct:0 },
+      { q:"Welche Stadt liegt am Fluss Elbe?", a:["Stuttgart","Hamburg","Frankfurt","Nürnberg"], correct:1 },
+      { q:"Die Themse fließt durch …", a:["Liverpool","London","Edinburgh","Cardiff"], correct:1 },
+
+      { q:"Welche Gebirgskette trennt Europa und Asien (klassisch)?", a:["Anden","Ural","Alpen","Himalaya"], correct:1 },
+      { q:"Die Alpen liegen in …", a:["nur Italien","nur Deutschland","mehreren europäischen Ländern","nur Frankreich"], correct:2 },
+      { q:"Der Himalaya liegt in …", a:["Afrika","Südamerika","Asien","Europa"], correct:2 },
+      { q:"Die Anden liegen in …", a:["Südamerika","Nordamerika","Europa","Australien"], correct:0 },
+      { q:"Der Atlas liegt in …", a:["Nordafrika","Skandinavien","Ostasien","Nordamerika"], correct:0 },
+
+      { q:"Welches Land grenzt NICHT an Deutschland?", a:["Dänemark","Belgien","Tschechien","Spanien"], correct:3 },
+      { q:"Welche Länder grenzen an Österreich?", a:["Italien und Schweiz","Polen und Litauen","Spanien und Portugal","Irland und UK"], correct:0 },
+      { q:"Welches Land liegt auf der Iberischen Halbinsel?", a:["Norwegen","Spanien","Italien","Griechenland"], correct:1 },
+      { q:"Welche Hauptstadt liegt am Meer?", a:["Bern","Wien","Lissabon","Prag"], correct:2 },
+      { q:"Welcher See ist der größte in Mitteleuropa?", a:["Bodensee","Chiemsee","Plattensee","Gardasee"], correct:2 },
+
+      { q:"Welche Region nennt man ‚Horn von Afrika‘?", a:["Somalia-Region","Patagonien","Balkan","Benelux"], correct:0 },
+      { q:"Welcher Kontinent ist flächenmäßig der zweitgrößte?", a:["Europa","Afrika","Asien","Südamerika"], correct:1 },
+      { q:"Welche Linie teilt die Erde in Nord- und Südhalbkugel?", a:["Datumsgrenze","Äquator","Nullmeridian","Wendekreis"], correct:1 },
+      { q:"Der Nullmeridian verläuft durch …", a:["Rom","Greenwich","Berlin","Athen"], correct:1 },
+      { q:"Welche Stadt liegt in Skandinavien?", a:["Oslo","Madrid","Lissabon","Athen"], correct:0 }
+    ];
+
+    // =========================
+    // STATE
+    // =========================
+    let order = [];
+    let step = 0;                 // 0..14
+    let selected = null;          // 0..3
+    let locked = false;
+    let currentWin = 0;
+    let safeWin = 0;
+
+    let lifelines = { fifty:true, audience:true, phone:true };
+
+    // =========================
+    // DOM
+    // =========================
+    const answersEl = document.getElementById("answers");
+    const qIndexEl = document.getElementById("qIndex");
+    const questionTextEl = document.getElementById("questionText");
+    const valueTagEl = document.getElementById("valueTag");
+    const statusEl = document.getElementById("status");
+    const currentEl = document.getElementById("current");
+    const safeEl = document.getElementById("safe");
+    const lockBtn = document.getElementById("lockBtn");
+    const walkBtn = document.getElementById("walkBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const fiftyBtn = document.getElementById("fiftyBtn");
+    const audienceBtn = document.getElementById("audienceBtn");
+    const phoneBtn = document.getElementById("phoneBtn");
+    const fiftyState = document.getElementById("fiftyState");
+    const audienceState = document.getElementById("audienceState");
+    const phoneState = document.getElementById("phoneState");
+
+    const moneyList = document.getElementById("moneyList");
+
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalText = document.getElementById("modalText");
+    const modalClose = document.getElementById("modalClose");
+
+    const timerEl = document.getElementById("timer");
+    const timerDot = document.getElementById("timerDot");
+    const flash = document.getElementById("flash");
+
+    const lbListEl = document.getElementById("lbList");
+    const bestScoreEl = document.getElementById("bestScore");
+    const clearLbBtn = document.getElementById("clearLbBtn");
+
+    // =========================
+    // HELPERS
+    // =========================
+    const fmtEUR = (n) => new Intl.NumberFormat("de-DE").format(n) + " €";
+    const labels = ["A","B","C","D"];
+
+    function flashFX(){
+      flash.classList.remove("go");
+      // force reflow
+      void flash.offsetWidth;
+      flash.classList.add("go");
+    }
+
+    function showModal(title, text){
+      modalTitle.textContent = title;
+      modalText.textContent = text;
+      modal.classList.add("show");
+    }
+    function hideModal(){ modal.classList.remove("show"); }
+
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // =========================
+    // SOUND (WebAudio, no files)
+    // =========================
+    let audioCtx = null;
+    function ensureAudio(){
+      if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if(audioCtx.state === "suspended") audioCtx.resume();
+    }
+    function beep(freq=440, dur=0.12, type="sine", gain=0.04){
+      if(!audioCtx) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + dur);
+    }
+    function sfxCorrect(){ ensureAudio(); beep(523,0.09,"triangle",0.05); setTimeout(()=>beep(659,0.10,"triangle",0.05),90); setTimeout(()=>beep(784,0.12,"triangle",0.05),190); }
+    function sfxWrong(){ ensureAudio(); beep(220,0.14,"sawtooth",0.045); setTimeout(()=>beep(180,0.18,"sawtooth",0.045),120); }
+    function sfxTick(){ ensureAudio(); beep(780,0.04,"square",0.02); }
+    function sfxTimeout(){ ensureAudio(); beep(140,0.25,"sawtooth",0.05); }
+
+    // =========================
+    // LEADERBOARD
+    // =========================
+    function loadLB(){
+      try{
+        const raw = localStorage.getItem(LB_KEY);
+        const data = raw ? JSON.parse(raw) : [];
+        return Array.isArray(data) ? data : [];
+      }catch{ return []; }
+    }
+    function saveLB(list){
+      localStorage.setItem(LB_KEY, JSON.stringify(list));
+    }
+    function updateLBUI(){
+      const lb = loadLB().sort((a,b)=>b.score-a.score).slice(0,10);
+      lbListEl.innerHTML = "";
+      let best = 0;
+      lb.forEach((row, idx)=>{
+        best = Math.max(best, row.score || 0);
+        const div = document.createElement("div");
+        div.className = "lbRow";
+        const left = document.createElement("span");
+        left.innerHTML = `<b>#${idx+1}</b> ${escapeHTML(row.name || "Player")}`;
+        const right = document.createElement("span");
+        right.innerHTML = `<b>${fmtEUR(row.score || 0)}</b>`;
+        div.appendChild(left);
+        div.appendChild(right);
+        lbListEl.appendChild(div);
+      });
+      bestScoreEl.textContent = fmtEUR(best);
+      if(lb.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "lbRow";
+        empty.innerHTML = `<span>Keine Einträge.</span><span>—</span>`;
+        lbListEl.appendChild(empty);
+      }
+    }
+    function addScoreToLB(score){
+      const name = prompt("Name für das Leaderboard?", "Player") || "Player";
+      const lb = loadLB();
+      lb.push({ name: String(name).slice(0,20), score, ts: Date.now() });
+      lb.sort((a,b)=>b.score-a.score);
+      saveLB(lb.slice(0,10));
+      updateLBUI();
+    }
+    function escapeHTML(s){
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // =========================
+    // GAME LOGIC
+    // =========================
+    function buildMoneyLadder(){
+      moneyList.innerHTML = "";
+      for(let i=0;i<money.length;i++){
+        const li = document.createElement("li");
+        li.dataset.step = i;
+        const num = document.createElement("span");
+        num.textContent = String(i+1).padStart(2,"0");
+        const val = document.createElement("b");
+        val.textContent = fmtEUR(money[i]);
+        li.appendChild(num);
+        li.appendChild(val);
+        if(safeLevels.has(i+1)) li.classList.add("safe");
+        moneyList.appendChild(li);
+      }
+      highlightMoney();
+    }
+    function highlightMoney(){
+      [...moneyList.querySelectorAll("li")].forEach(li => li.classList.remove("active"));
+      const active = moneyList.querySelector(`li[data-step="${step}"]`);
+      if(active) active.classList.add("active");
+    }
+    function updateTop(){
+      qIndexEl.textContent = String(step+1);
+      valueTagEl.textContent = "Wert: " + fmtEUR(money[step]);
+      currentEl.textContent = fmtEUR(currentWin);
+      safeEl.textContent = fmtEUR(safeWin);
+
+      fiftyState.textContent = lifelines.fifty ? "verfügbar" : "benutzt";
+      audienceState.textContent = lifelines.audience ? "verfügbar" : "benutzt";
+      phoneState.textContent = lifelines.phone ? "verfügbar" : "benutzt";
+
+      fiftyBtn.disabled = !lifelines.fifty || locked;
+      audienceBtn.disabled = !lifelines.audience || locked;
+      phoneBtn.disabled = !lifelines.phone || locked;
+
+      highlightMoney();
+    }
+
+    function getCurrentQuestion(){
+      return pool[order[step]];
+    }
+
+    function renderQuestion(){
+      selected = null;
+      locked = false;
+      lockBtn.disabled = true;
+      statusEl.textContent = "Wähle eine Antwort.";
+
+      const { q, a } = getCurrentQuestion();
+      questionTextEl.textContent = q;
+
+      answersEl.innerHTML = "";
+      a.forEach((txt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.type = "button";
+        btn.dataset.idx = idx;
+
+        const lab = document.createElement("div");
+        lab.className = "label";
+        lab.textContent = labels[idx];
+
+        const t = document.createElement("div");
+        t.className = "text";
+        t.textContent = txt;
+
+        btn.appendChild(lab);
+        btn.appendChild(t);
+
+        btn.addEventListener("click", () => {
+          if(locked) return;
+          ensureAudio();
+          selectAnswer(idx);
+        });
+
+        answersEl.appendChild(btn);
+      });
+
+      resetTimer();
+      startTimer();
+      updateTop();
+    }
+
+    function selectAnswer(idx){
+      selected = idx;
+      lockBtn.disabled = false;
+      statusEl.textContent = "Antwort gewählt. Klicke „Einloggen“.";
+      [...answersEl.querySelectorAll(".btn")].forEach(b => b.classList.remove("selected"));
+      const btn = answersEl.querySelector(`.btn[data-idx="${idx}"]`);
+      if(btn) btn.classList.add("selected");
+    }
+
+    function stopTimer(){
+      if(timerId){ clearInterval(timerId); timerId = null; }
+    }
+    function resetTimer(){
+      stopTimer();
+      timerLeft = QUESTION_TIME;
+      timerEl.textContent = String(timerLeft);
+      timerDot.classList.remove("warn");
+    }
+    function startTimer(){
+      stopTimer();
+      timerId = setInterval(() => {
+        if(locked) return;
+        timerLeft -= 1;
+        timerEl.textContent = String(timerLeft);
+
+        if(timerLeft <= 7){
+          timerDot.classList.add("warn");
+          sfxTick();
+        }
+
+        if(timerLeft <= 0){
+          stopTimer();
+          onTimeout();
+        }
+      }, 1000);
+    }
+
+    function reveal(correct, selectedIdx){
+      // dramatic flash
+      flashFX();
+      const correctBtn = answersEl.querySelector(`.btn[data-idx="${correct}"]`);
+      if(correctBtn) correctBtn.classList.add("reveal", "correct");
+
+      if(selectedIdx !== null && selectedIdx !== correct){
+        const chosenBtn = answersEl.querySelector(`.btn[data-idx="${selectedIdx}"]`);
+        if(chosenBtn) chosenBtn.classList.add("reveal", "wrong");
+      }
+
+      // dim others
+      [...answersEl.querySelectorAll(".btn")].forEach(b => {
+        const i = Number(b.dataset.idx);
+        if(i !== correct && i !== selectedIdx) b.classList.add("dim");
+      });
+    }
+
+    function lockAnswer(){
+      if(selected === null || locked) return;
+      locked = true;
+      stopTimer();
+      lockBtn.disabled = true;
+
+      const q = getCurrentQuestion();
+      const correct = q.correct;
+
+      // disable all
+      [...answersEl.querySelectorAll(".btn")].forEach(b => b.disabled = true);
+
+      reveal(correct, selected);
+
+      if(selected === correct){
+        statusEl.textContent = "Richtig! 🎉";
+        sfxCorrect();
+        currentWin = money[step];
+        if(safeLevels.has(step+1)) safeWin = currentWin;
+
+        updateTop();
+
+        if(step === 14){
+          setTimeout(() => {
+            showModal("Du hast gewonnen! 🏆",
+              "Glückwunsch! Du hast die Million geknackt: " + fmtEUR(currentWin) +
+              "\n\nWillst du dich ins Leaderboard eintragen?");
+            // after modal close -> add score prompt
+            modalClose.onclick = () => { hideModal(); addScoreToLB(currentWin); };
+          }, 650);
+          return;
+        }
+
+        setTimeout(() => {
+          step++;
+          renderQuestion();
+        }, 1100);
+      } else {
+        statusEl.textContent = "Falsch. ❌";
+        sfxWrong();
+        currentWin = safeWin;
+        updateTop();
+
+        setTimeout(() => {
+          showModal("Spiel vorbei",
+            "Leider falsch.\n\nDu gehst mit " + fmtEUR(safeWin) + " nach Hause." +
+            "\n\nWillst du dich ins Leaderboard eintragen?");
+          modalClose.onclick = () => { hideModal(); addScoreToLB(safeWin); };
+        }, 750);
+      }
+    }
+
+    function onTimeout(){
+      if(locked) return;
+      locked = true;
+      lockBtn.disabled = true;
+
+      // disable
+      [...answersEl.querySelectorAll(".btn")].forEach(b => b.disabled = true);
+
+      statusEl.textContent = "Zeit abgelaufen! ⏳";
+      sfxTimeout();
+
+      const q = getCurrentQuestion();
+      reveal(q.correct, null);
+
+      currentWin = safeWin;
+      updateTop();
+
+      setTimeout(() => {
+        showModal("Zeit abgelaufen",
+          "Du warst zu langsam.\n\nDu gehst mit " + fmtEUR(safeWin) + " nach Hause." +
+          "\n\nWillst du dich ins Leaderboard eintragen?");
+        modalClose.onclick = () => { hideModal(); addScoreToLB(safeWin); };
+      }, 850);
+    }
+
+    function walkAway(){
+      stopTimer();
+      if(step === 0 && currentWin === 0){
+        showModal("Mitnehmen", "Du hast noch keinen Gewinn. Starte eine Runde!");
+        modalClose.onclick = () => hideModal();
+        return;
+      }
+      locked = true;
+      lockBtn.disabled = true;
+      [...answersEl.querySelectorAll(".btn")].forEach(b => b.disabled = true);
+      fiftyBtn.disabled = true; audienceBtn.disabled = true; phoneBtn.disabled = true;
+
+      showModal("Mitnehmen",
+        "Du nimmst " + fmtEUR(currentWin) + " mit.\n\nWillst du dich ins Leaderboard eintragen?");
+      modalClose.onclick = () => { hideModal(); addScoreToLB(currentWin); };
+    }
+
+    // =========================
+    // LIFELINES
+    // =========================
+    function lifelineFifty(){
+      if(!lifelines.fifty || locked) return;
+      lifelines.fifty = false;
+
+      const q = getCurrentQuestion();
+      const correct = q.correct;
+
+      const wrong = [0,1,2,3].filter(i => i !== correct);
+      const toRemove = shuffle(wrong).slice(0,2);
+
+      toRemove.forEach(i => {
+        const btn = answersEl.querySelector(`.btn[data-idx="${i}"]`);
+        if(btn){
+          btn.disabled = true;
+          btn.classList.add("dim");
+          btn.querySelector(".text").textContent = "—";
+        }
+      });
+
+      statusEl.textContent = "50:50 benutzt. Zwei falsche Antworten entfernt.";
+      updateTop();
+    }
+
+    function lifelineAudience(){
+      if(!lifelines.audience || locked) return;
+      lifelines.audience = false;
+
+      const q = getCurrentQuestion();
+      const correct = q.correct;
+
+      const difficulty = step + 1; // 1..15
+      const baseCorrect = Math.max(35, 78 - difficulty*3); // easier -> higher
+      let remaining = 100 - baseCorrect;
+
+      const dist = [0,0,0,0];
+      dist[correct] = baseCorrect;
+
+      const others = [0,1,2,3].filter(i => i !== correct);
+      const parts = shuffle([Math.random(), Math.random(), Math.random()]);
+      const sum = parts.reduce((a,b)=>a+b,0);
+      for(let i=0;i<3;i++){
+        dist[others[i]] = Math.round((parts[i]/sum) * remaining);
+      }
+      const fix = 100 - dist.reduce((a,b)=>a+b,0);
+      dist[others[0]] += fix;
+
+      const text = labels.map((L,i)=> `${L}: ${dist[i]}%`).join("\n");
+      showModal("Publikumsjoker", "Das Publikum meint:\n\n" + text);
+      modalClose.onclick = () => hideModal();
+
+      updateTop();
+    }
+
+    function lifelinePhone(){
+      if(!lifelines.phone || locked) return;
+      lifelines.phone = false;
+
+      const q = getCurrentQuestion();
+      const correct = q.correct;
+
+      const difficulty = step + 1;
+      const accuracy = Math.max(45, 90 - difficulty*3); // %
+      const isRight = Math.random()*100 < accuracy;
+
+      let guess = correct;
+      if(!isRight){
+        const wrong = [0,1,2,3].filter(i => i !== correct);
+        guess = wrong[Math.floor(Math.random()*wrong.length)];
+      }
+
+      showModal("Telefonjoker", `Dein Freund sagt:\n„Ich bin nicht ganz sicher, aber ich tippe auf ${labels[guess]}.“`);
+      modalClose.onclick = () => hideModal();
+
+      updateTop();
+    }
+
+    // =========================
+    // INIT / RESET
+    // =========================
+    function resetGame(){
+      // pick 15 unique random questions from pool
+      const indices = [...Array(pool.length).keys()];
+      order = shuffle(indices).slice(0, 15);
+
+      step = 0;
+      selected = null;
+      locked = false;
+      currentWin = 0;
+      safeWin = 0;
+      lifelines = { fifty:true, audience:true, phone:true };
+
+      buildMoneyLadder();
+      renderQuestion();
+      updateTop();
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
+    lockBtn.addEventListener("click", () => { ensureAudio(); lockAnswer(); });
+    walkBtn.addEventListener("click", () => { ensureAudio(); walkAway(); });
+    restartBtn.addEventListener("click", () => { ensureAudio(); resetGame(); });
+
+    fiftyBtn.addEventListener("click", () => { ensureAudio(); lifelineFifty(); });
+    audienceBtn.addEventListener("click", () => { ensureAudio(); lifelineAudience(); });
+    phoneBtn.addEventListener("click", () => { ensureAudio(); lifelinePhone(); });
+
+    modalClose.addEventListener("click", () => hideModal());
+    modal.addEventListener("click", (e) => { if(e.target === modal) hideModal(); });
+
+    clearLbBtn.addEventListener("click", () => {
+      if(confirm("Leaderboard wirklich löschen?")){
+        localStorage.removeItem(LB_KEY);
+        updateLBUI();
+      }
+    });
+
+    // Keyboard
+    window.addEventListener("keydown", (e) => {
+      if(modal.classList.contains("show") && e.key === "Escape") hideModal();
+      if(locked) return;
+
+      const key = e.key.toLowerCase();
+      const map = { a:0, b:1, c:2, d:3 };
+      if(map[key] !== undefined){
+        const btn = answersEl.querySelector(`.btn[data-idx="${map[key]}"]`);
+        if(btn && !btn.disabled){
+          ensureAudio();
+          selectAnswer(map[key]);
+        }
+      }
+      if(e.key === "Enter"){
+        if(!lockBtn.disabled){
+          ensureAudio();
+          lockAnswer();
+        }
+      }
+    });
+
+    // Start
+    updateLBUI();
+    resetGame();
+  </script>
+</body>
+</html>
